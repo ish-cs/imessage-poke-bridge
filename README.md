@@ -42,7 +42,33 @@ battery thanks us.) Closed lid / asleep = bridge is dark until you wake it.
 - **Open Logs Folder** — `~/.imsg-bridge`
 
 ## Tools exposed to Poke
-`list_chats`, `read_history`, `search_messages`, `whois`, `send_message`, `react`
+| Tool | What it does |
+|------|--------------|
+| `list_chats` | recent conversations + chat_id + resolved contact name |
+| `read_history` | messages in a chat (group senders resolved to names) |
+| `search_messages` | full-text search your history |
+| `find_contact` | name → phone/email, so "text Mom" works |
+| `whois` | is a handle reachable on iMessage |
+| `catch_up` | "what did I miss" across recent chats in one call |
+| `send_message` | send a text |
+| `send_attachment` | send an image/file (+ optional text) |
+| `react` | tapback the latest message |
+| `bridge_status` | self-diagnose: health, contacts, send count, recipe link |
+
+Contact names are resolved by reading your local AddressBook (covered by the
+Full Disk Access grant — no extra Contacts permission).
+
+## Safety
+Every send is appended to `~/.imsg-bridge/sends.jsonl` (an audit log you can
+review). Two optional env vars guard the send tools:
+- `IMSG_SEND_LIMIT` — max sends per hour (default `30`)
+- `IMSG_SEND_ALLOWLIST` — comma-separated handles; if set, only those can be
+  texted
+
+Set them in the launchd plist or your environment.
+
+> ⚠️ Anything in your messages — secrets, 2FA codes — becomes readable by Poke
+> (an LLM). Don't text yourself API keys, and rotate any that are already there.
 
 ## Uninstall
 ```bash
