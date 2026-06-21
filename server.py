@@ -64,12 +64,36 @@ mcp = FastMCP(
 
 
 # --- auth ------------------------------------------------------------------
+# Lock the bridge to a single Poke account. Poke sends X-Poke-User-Id on every
+# request; only the owner's id is accepted. Even if the recipe link leaks,
+# another person's Poke (different user id) is rejected.
+ALLOWED_POKE_USER = (os.environ.get("IMSG_POKE_USER_ID") or "").strip()
+SEEN_USER_FILE = os.path.join(INSTALL_DIR, "seen_poke_user.txt")
+
+
 def _check_auth() -> None:
-    if not TOKEN:
-        return
     headers = get_http_headers(include_all=True)
-    if headers.get("authorization", "") != f"Bearer {TOKEN}":
+
+    # Optional bearer token (only relevant if you expose a public URL).
+    if TOKEN and headers.get("authorization", "") != f"Bearer {TOKEN}":
         raise PermissionError("Unauthorized: missing or invalid bearer token.")
+
+    uid = (headers.get("x-poke-user-id") or "").strip()
+
+    if not ALLOWED_POKE_USER:
+        # Setup phase: record the owner's id so install can lock to it.
+        if uid:
+            try:
+                os.makedirs(INSTALL_DIR, exist_ok=True)
+                with open(SEEN_USER_FILE, "w") as f:
+                    f.write(uid)
+            except OSError:
+                pass
+        return
+
+    # Locked: reject anyone who is not the owner.
+    if uid != ALLOWED_POKE_USER:
+        raise PermissionError("This bridge is locked to its owner's Poke account.")
 
 
 # --- imsg helper -----------------------------------------------------------
@@ -270,6 +294,7 @@ def find_contact(name: str, limit: int = 10) -> dict:
         name: full or partial contact name (case-insensitive).
         limit: max matches (default 10).
     """
+    _check_auth()
     _load_contacts()
     q = name.strip().lower()
     if not q:
@@ -416,6 +441,7 @@ def react(chat_id: int, reaction: str = "like") -> dict:
 def bridge_status() -> dict:
     """Report bridge health: imsg feature availability, contacts loaded, recent
     send count, and the recipe link. Use to self-diagnose connectivity."""
+    _check_auth()
     _load_contacts()
     now = time.time()
     recent = len([t for t in _send_times if now - t < SEND_WINDOW])

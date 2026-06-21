@@ -31,6 +31,19 @@ NODE_BIN="$(dirname "$(command -v node)")"
 POKE_BIN="$(command -v poke)"
 UV_BIN="$(command -v uv)"
 
+# ---------------------------------------------------------------- poke login + lock
+# Log in first so we can lock the bridge to THIS Poke account. Poke sends
+# X-Poke-User-Id on every request; the server only accepts the owner's id, so
+# even if the recipe link leaks, nobody else's Poke can reach your messages.
+if ! "$POKE_BIN" whoami >/dev/null 2>&1; then
+  log "Logging you into Poke (a browser will open; enter the code shown)…"
+  "$POKE_BIN" login
+fi
+
+POKE_UID="$(node -e "try{const t=require(process.env.HOME+'/.config/poke/credentials.json').token;process.stdout.write(JSON.parse(Buffer.from(t.split('.')[1],'base64url')).sub||'')}catch(e){}" 2>/dev/null || true)"
+[ -n "$POKE_UID" ] || die "Could not determine your Poke account id — refusing to install an unlocked bridge. Run '$POKE_BIN login' and try again."
+log "Locking bridge to your Poke account ($POKE_UID)."
+
 # ---------------------------------------------------------------- files + venv
 log "Installing into $INSTALL_DIR"
 mkdir -p "$INSTALL_DIR"
@@ -59,6 +72,7 @@ cat > "$INSTALL_DIR/run-server.sh" <<EOF
 #!/bin/bash
 cd "$INSTALL_DIR" || exit 1
 export PATH="/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin"
+export IMSG_POKE_USER_ID="$POKE_UID"
 exec "$INSTALL_DIR/.venv/bin/python" "$INSTALL_DIR/server.py"
 EOF
 
@@ -102,12 +116,6 @@ EOF
 mkdir -p "$AGENTS_DIR"
 write_plist "com.imsgbridge.server" "$INSTALL_DIR/run-server.sh" "$INSTALL_DIR/server.log"
 write_plist "com.imsgbridge.tunnel" "$INSTALL_DIR/run-tunnel.sh" "$INSTALL_DIR/tunnel.log"
-
-# ---------------------------------------------------------------- poke login
-if ! "$POKE_BIN" whoami >/dev/null 2>&1; then
-  log "Logging you into Poke (a browser will open; enter the code shown)…"
-  "$POKE_BIN" login
-fi
 
 # ---------------------------------------------------------------- menu bar agent
 # The menu bar app runs as a LaunchAgent (not a .app bundle): on macOS 26 a
@@ -162,8 +170,9 @@ ONE manual step left — macOS requires it and no installer can do it for you:
   2. The first time the bridge sends a text, macOS will ask if it can control
      Messages — click "Allow".
 
-Then click the 💬 in your menu bar → it's ON. Your personal recipe link will
-appear under "Copy Recipe Link" once the tunnel is up.
+Then click "iMSG ●" in your menu bar → it's ON. Your personal recipe link will
+appear under "Copy Recipe Link" once the tunnel is up. The bridge is locked to
+your Poke account — no one else's Poke can reach it.
 
 To uninstall later:  $SCRIPT_DIR/uninstall.sh
 EOF

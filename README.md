@@ -140,10 +140,17 @@ Set in the launchd plist or environment:
 |----------|---------|---------|
 | `IMSG_SEND_LIMIT` | `30` | max sends per hour |
 | `IMSG_SEND_ALLOWLIST` | *(unset)* | comma-separated handles; if set, only those can be texted |
+| `IMSG_POKE_USER_ID` | *(set by installer)* | your Poke account id — the server only accepts requests carrying it. Set automatically at install; don't change it |
 | `IMSG_MCP_TOKEN` | *(unset)* | bearer token — **set this only if you expose the server on a public URL**; leave unset for the private Poke tunnel |
 
 ## Safety & privacy
 
+- **Locked to your Poke account.** Poke sends an `X-Poke-User-Id` on every
+  request; the server only accepts **your** id (captured at install from your
+  Poke login). Even if your recipe link leaked, someone else's Poke — a different
+  user id — is rejected outright. The installer refuses to set up an unlocked
+  bridge. The server also binds to `127.0.0.1`, so it's only reachable through
+  your own private Poke tunnel, never the open internet.
 - **Audit log** — every send is appended to `~/.imsg-bridge/sends.jsonl`. Review
   exactly what Poke did in your name.
 - **Rate limit + allowlist** — guard rails on the send tools (see Configuration).
@@ -193,9 +200,12 @@ to. It doesn't stream your history anywhere. (That said, content Poke *does* rea
 is processed by an LLM — see Safety & privacy.)
 
 **Can someone else use my link to read my texts?**
-No, as long as you don't share *your personal* recipe link. The thing you share
-is the **app/installer** — each person who installs it gets their own server,
-tunnel, and link wired to *their* Mac and *their* Poke. Installs are fully isolated.
+No. The server is locked to your Poke account via the `X-Poke-User-Id` Poke
+attaches to every request — another person's Poke is rejected even if they
+somehow got your link. On top of that, the server only listens on localhost and
+is reachable only through your own private tunnel. The thing you *share* is the
+**app/installer**: each person who installs it gets their own server, tunnel, and
+link wired to *their* Mac and *their* Poke. Installs are fully isolated.
 
 **Why does my Mac have to be awake?**
 iMessage only lives on your Mac. There's no cloud copy to talk to, so when the Mac
