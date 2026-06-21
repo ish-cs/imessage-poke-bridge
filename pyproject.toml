@@ -5,5 +5,5 @@ description = "Local MCP server wrapping the imsg CLI so Poke can read/send iMes
 requires-python = ">=3.11"
 dependencies = [
     "fastmcp>=2.0.0",
-    "rumps>=0.4.0",
+    "pyobjc-framework-Cocoa>=10.0",
 ]

@@ -37,7 +37,7 @@ mkdir -p "$INSTALL_DIR"
 cp "$SCRIPT_DIR/server.py" "$SCRIPT_DIR/menubar.py" "$INSTALL_DIR/"
 
 log "Creating Python environment…"
-( cd "$INSTALL_DIR" && "$UV_BIN" venv --quiet && "$UV_BIN" pip install --quiet fastmcp rumps )
+( cd "$INSTALL_DIR" && "$UV_BIN" venv --quiet && "$UV_BIN" pip install --quiet fastmcp pyobjc-framework-Cocoa )
 PYBIN="$(readlink -f "$INSTALL_DIR/.venv/bin/python")"
 
 # ---------------------------------------------------------------- run wrappers
@@ -95,45 +95,42 @@ if ! "$POKE_BIN" whoami >/dev/null 2>&1; then
   "$POKE_BIN" login
 fi
 
-# ---------------------------------------------------------------- menu bar app
-log "Building menu bar app…"
-rm -rf "$APP"
-mkdir -p "$APP/Contents/MacOS"
-cat > "$APP/Contents/MacOS/launcher" <<EOF
-#!/bin/bash
-export PATH="/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin"
-exec "$INSTALL_DIR/.venv/bin/python" "$INSTALL_DIR/menubar.py"
-EOF
-chmod +x "$APP/Contents/MacOS/launcher"
-cat > "$APP/Contents/Info.plist" <<'EOF'
+# ---------------------------------------------------------------- menu bar agent
+# The menu bar app runs as a LaunchAgent (not a .app bundle): on macOS 26 a
+# shell-launched bundle doesn't get a usable GUI context for its status item,
+# but a LaunchAgent runs in the Aqua session and renders correctly.
+log "Installing menu bar agent…"
+rm -rf "$APP"  # remove any old bundle from prior installs
+cat > "$AGENTS_DIR/com.imsgbridge.menubar.plist" <<EOF
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-    <key>CFBundleName</key><string>iMessage Bridge</string>
-    <key>CFBundleDisplayName</key><string>iMessage Bridge</string>
-    <key>CFBundleIdentifier</key><string>com.imsgbridge.menubar</string>
-    <key>CFBundleVersion</key><string>1.0</string>
-    <key>CFBundleShortVersionString</key><string>1.0</string>
-    <key>CFBundlePackageType</key><string>APPL</string>
-    <key>CFBundleExecutable</key><string>launcher</string>
-    <key>LSUIElement</key><true/>
-    <key>LSMinimumSystemVersion</key><string>12.0</string>
+    <key>Label</key><string>com.imsgbridge.menubar</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>$INSTALL_DIR/.venv/bin/python</string>
+        <string>$INSTALL_DIR/menubar.py</string>
+    </array>
+    <key>EnvironmentVariables</key>
+    <dict><key>PATH</key><string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string></dict>
+    <key>RunAtLoad</key><true/>
+    <key>KeepAlive</key><true/>
+    <key>ThrottleInterval</key><integer>10</integer>
+    <key>StandardOutPath</key><string>$INSTALL_DIR/menubar.log</string>
+    <key>StandardErrorPath</key><string>$INSTALL_DIR/menubar.log</string>
 </dict>
 </plist>
 EOF
 
 # ---------------------------------------------------------------- load + launch
 log "Starting services…"
-for label in com.imsgbridge.server com.imsgbridge.tunnel; do
+for label in com.imsgbridge.server com.imsgbridge.tunnel com.imsgbridge.menubar; do
   launchctl bootout "gui/$UID_NUM/$label" 2>/dev/null || true
   launchctl bootstrap "gui/$UID_NUM" "$AGENTS_DIR/$label.plist"
 done
-
-# login item (dedupe first) + launch the menu bar app
+# clean up any login item from older installs (no longer used)
 osascript -e 'tell application "System Events" to delete (every login item whose name is "iMessage Bridge")' 2>/dev/null || true
-osascript -e "tell application \"System Events\" to make login item at end with properties {path:\"$APP\", hidden:true}" >/dev/null 2>&1 || true
-open "$APP"
 
 # ---------------------------------------------------------------- permissions
 open "x-apple.systempreferences:com.apple.preference.security?Privacy_AllFiles" 2>/dev/null || true

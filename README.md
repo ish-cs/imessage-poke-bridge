@@ -29,7 +29,7 @@ The installer:
 2. **Automation → Messages** — pops up the first time it sends a text. Click Allow.
 
 ## Use it
-Click **💬** in the menu bar (🌙 = off). Then text Poke naturally:
+Click **`iMSG ●`** in the menu bar (`○` = off). Then text Poke naturally:
 - *"what did mom text me?"*
 - *"tell Sarah I'm running 10 min late"*
 

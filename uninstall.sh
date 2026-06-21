@@ -7,7 +7,7 @@ APP="$HOME/Applications/iMessage Bridge.app"
 UID_NUM="$(id -u)"
 
 echo "==> Stopping services…"
-for label in com.imsgbridge.server com.imsgbridge.tunnel; do
+for label in com.imsgbridge.server com.imsgbridge.tunnel com.imsgbridge.menubar; do
   launchctl bootout "gui/$UID_NUM/$label" 2>/dev/null || true
   rm -f "$AGENTS_DIR/$label.plist"
 done
