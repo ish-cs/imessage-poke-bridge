@@ -2,16 +2,19 @@
 
 # 💬 iMessage Bridge for Poke
 
-**Text [Poke](https://poke.com) to read and send your iMessages.**
+### Text [Poke](https://poke.com) to read and send your iMessages.
 
-A tiny local server runs on your Mac, Poke reaches it over a private tunnel, and
-a menu bar switch turns it on and off. Your messages never leave your Mac unless
-*you* ask Poke to act on them.
+A tiny server runs on your Mac, Poke reaches it over a private tunnel, and a menu
+bar switch turns it on and off. Your messages stay on your Mac — only what you ask
+Poke to read or send ever leaves it.
 
+[![release](https://img.shields.io/github/v/release/ish-cs/imessage-poke-bridge?color=7c3aed)](https://github.com/ish-cs/imessage-poke-bridge/releases/latest)
+[![downloads](https://img.shields.io/github/downloads/ish-cs/imessage-poke-bridge/total?color=success)](https://github.com/ish-cs/imessage-poke-bridge/releases)
 ![platform](https://img.shields.io/badge/platform-macOS%2012%2B-black)
 ![license](https://img.shields.io/badge/license-MIT-blue)
-![built for Poke](https://img.shields.io/badge/built%20for-Poke-7c3aed)
-![MCP](https://img.shields.io/badge/protocol-MCP-success)
+![MCP](https://img.shields.io/badge/protocol-MCP-informational)
+
+**[⬇️ Download](https://github.com/ish-cs/imessage-poke-bridge/releases/latest) · [⚡ Quick start](#quick-start) · [🛠 How it works](#how-it-works) · [❓ FAQ](#faq)**
 
 </div>
 
@@ -182,10 +185,37 @@ in System Settings, and remove the integration at `poke.com/settings` if you wan
 - **Contact matching** is by last-10-digits, so some international numbers may
   mismatch.
 
+## FAQ
+
+**Does Poke get all my messages?**
+No. The bridge only reads or sends when Poke calls a tool — i.e. when you ask it
+to. It doesn't stream your history anywhere. (That said, content Poke *does* read
+is processed by an LLM — see Safety & privacy.)
+
+**Can someone else use my link to read my texts?**
+No, as long as you don't share *your personal* recipe link. The thing you share
+is the **app/installer** — each person who installs it gets their own server,
+tunnel, and link wired to *their* Mac and *their* Poke. Installs are fully isolated.
+
+**Why does my Mac have to be awake?**
+iMessage only lives on your Mac. There's no cloud copy to talk to, so when the Mac
+sleeps, Poke can't reach it. We don't force it awake — that's your battery's call.
+
+**Is it safe to run an unsigned app?**
+The source is all here and the installer is a readable shell script — inspect both.
+The "unidentified developer" warning is just because it isn't notarized yet
+([roadmap](#roadmap)); right-click → Open acknowledges that once.
+
+**Does this need SIP disabled?**
+No. It uses only the features that work with System Integrity Protection on.
+
+**How do I turn it off?**
+Click the menu bar item → **Turn Off**, or run `./uninstall.sh` to remove it entirely.
+
 ## Roadmap
 
-- [ ] [Signed + notarized `.dmg` installer](https://github.com/ish-cs/imessage-poke-bridge/issues/1)
-- [ ] [Dependency-free Swift/Go rewrite](https://github.com/ish-cs/imessage-poke-bridge/issues/2)
+- [ ] [Signed + notarized `.dmg` installer](https://github.com/ish-cs/imessage-poke-bridge/issues/1) — clean double-click, no warning
+- [ ] [Dependency-free Swift/Go rewrite](https://github.com/ish-cs/imessage-poke-bridge/issues/2) — no Homebrew/Python/Node needed
 
 ## Architecture
 
