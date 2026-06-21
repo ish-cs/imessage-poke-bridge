@@ -34,7 +34,21 @@ UV_BIN="$(command -v uv)"
 # ---------------------------------------------------------------- files + venv
 log "Installing into $INSTALL_DIR"
 mkdir -p "$INSTALL_DIR"
-cp "$SCRIPT_DIR/server.py" "$SCRIPT_DIR/menubar.py" "$INSTALL_DIR/"
+
+# Get app files from alongside this script (git clone) or download them
+# (curl | bash). Lets anyone install with a single command, no clone needed.
+RAW_BASE="https://raw.githubusercontent.com/ish-cs/imessage-poke-bridge/main"
+fetch_into() {
+  local f="$1"
+  if [ -f "$SCRIPT_DIR/$f" ]; then
+    cp "$SCRIPT_DIR/$f" "$INSTALL_DIR/$f"
+  else
+    log "Downloading $f…"
+    curl -fsSL "$RAW_BASE/$f" -o "$INSTALL_DIR/$f"
+  fi
+}
+fetch_into server.py
+fetch_into menubar.py
 
 log "Creating Python environment…"
 ( cd "$INSTALL_DIR" && "$UV_BIN" venv --quiet && "$UV_BIN" pip install --quiet fastmcp pyobjc-framework-Cocoa )
