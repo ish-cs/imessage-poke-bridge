@@ -1,0 +1,14 @@
+# secrets & per-user state
+.token
+recipe.txt
+
+# logs
+*.log
+
+# python
+.venv/
+__pycache__/
+*.pyc
+
+# macOS
+.DS_Store
