@@ -50,14 +50,21 @@ a CLI that reads your local `chat.db` and drives Messages.app.
 **Prerequisites:** macOS 12+, [Homebrew](https://brew.sh), and a
 [Poke](https://poke.com) account.
 
-**One command** (paste into Terminal):
+### Option A — download the app (easiest)
+
+1. **[⬇️ Download the latest release](https://github.com/ish-cs/imessage-poke-bridge/releases/latest)** and unzip it.
+2. **Right-click** `Install iMessage Bridge.app` → **Open** → **Open**.
+   *(Needed once — the app is unsigned, so macOS asks you to confirm.)*
+3. A Terminal window runs the setup and walks you through the rest.
+
+### Option B — one command
 
 ```bash
 bash <(curl -fsSL https://raw.githubusercontent.com/ish-cs/imessage-poke-bridge/main/install.sh)
 ```
 
 <details>
-<summary>…or clone the repo</summary>
+<summary>Option C — clone the repo</summary>
 
 ```bash
 git clone https://github.com/ish-cs/imessage-poke-bridge.git
@@ -66,10 +73,10 @@ cd imessage-poke-bridge
 ```
 </details>
 
-The installer handles everything **for your account**: installs deps (`imsg`,
-Node, `poke` CLI, `uv`), sets up the server + tunnel as background services, logs
-**you** into **your** Poke, mints **your** recipe link, and adds the menu bar app.
-Every install is fully self-contained — your Poke talks to your Mac, nobody else's.
+However you install, it sets everything up **for your account**: deps (`imsg`,
+Node, `poke` CLI, `uv`), the server + tunnel as background services, logs **you**
+into **your** Poke, mints **your** recipe link, and adds the menu bar app. Every
+install is fully self-contained — your Poke talks to your Mac, nobody else's.
 
 ### Two permissions you must grant
 
