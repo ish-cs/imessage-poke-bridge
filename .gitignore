@@ -12,3 +12,6 @@ __pycache__/
 
 # macOS
 .DS_Store
+
+# build artifacts (distributed via GitHub Releases)
+dist/
